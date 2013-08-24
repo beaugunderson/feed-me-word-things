@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
  <head>
-  <title></title>
+  <title>Ludum 27</title>
 
   <script src="bower_components/jquery/jquery.min.js"></script>
-  <script src="bower_components/sprintf/src/sprintf.min.js"></script>
   <script src="bower_components/lodash/dist/lodash.min.js"></script>
+  <script src="bower_components/underscore.string/dist/underscore.string.min.js"></script>
+  <script src="bower_components/howler/howler.min.js"></script>
 
   <script src="js/main.js"></script>
 
@@ -13,15 +14,17 @@
  </head>
 
  <body>
-  <h1><span id="countdown">10</span> seconds</h1>
+  <h1 id="countdown-wrapper"><span id="countdown">10</span> seconds</h1>
 
-  <div id="word">
-
-  </div>
+  <div id="words"></div>
 
   <script id="word-template" type="lodash/template">
-   <% _.forEach(word.split(''), function (letter) { %>
-    <span class="letter"><%= letter %></span>
+   <% _.forEach(words, function (word) { %>
+    <div class="word">
+    <% _.forEach(word.split(''), function (letter) { %>
+     <span class="letter"><%= letter %></span>
+    <% }); %>
+    </div>
    <% }); %>
   </script>
  </body>
