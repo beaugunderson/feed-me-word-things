@@ -20,5 +20,5 @@ app.get('/words/:number/:length', function (req, res) {
 words.on('end', function () {
   console.log('listening on lvh.me:5000');
 
-  app.listen(5000);
+  app.listen(process.env.PORT);
 });
