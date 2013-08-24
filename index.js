@@ -3,7 +3,7 @@ var fs = require('fs');
 var nonsense = require('nonsense');
 var _ = require('lodash');
 
-var words = nonsense.words(fs.createReadStream('/usr/share/dict/words'), 4);
+var words = nonsense.words(fs.createReadStream('./words.txt'), 4);
 
 var app = express();
 
