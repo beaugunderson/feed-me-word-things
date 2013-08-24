@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title></title>
+
+  <script src="bower_components/jquery/jquery.min.js"></script>
+  <script src="bower_components/sprintf/src/sprintf.min.js"></script>
+  <script src="bower_components/lodash/dist/lodash.min.js"></script>
+
+  <script src="js/main.js"></script>
+
+  <link rel="stylesheet" href="css/main.css">
+ </head>
+
+ <body>
+  <h1><span id="countdown">10</span> seconds</h1>
+
+  <div id="word">
+
+  </div>
+
+  <script id="word-template" type="lodash/template">
+   <% _.forEach(word.split(''), function (letter) { %>
+    <span class="letter"><%= letter %></span>
+   <% }); %>
+  </script>
+ </body>
+</html>
