@@ -1,7 +1,7 @@
 {
-  "name": "ludum-48",
+  "name": "feed-me-word-things",
   "version": "0.0.0",
-  "description": "My entry to Ludum Dare #48.",
+  "description": "My entry to Ludum Dare #27",
   "main": "index.js",
   "scripts": {
     "test": "mocha -R spec"
