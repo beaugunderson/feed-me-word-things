@@ -73,10 +73,13 @@ body {
 
 #correct-words-list {
    list-style-type: none;
+   line-height: 1.4em;
+   padding-left: 0;
 }
 
 #correct-words-list li {
-   display: inline;
+   display: inline-block;
+   margin-right: 0.75em;
 }
 
 #correct-words-list li:hover {
@@ -87,6 +90,7 @@ body {
    display: none;
 
    box-sizing: border-box;
+   -moz-box-sizing: border-box;
 
    font-size: 2em;
    opacity: 0.9;
@@ -100,4 +104,6 @@ body {
 
    padding-left: 2em;
    padding-right: 2em;
+
+   overflow-y: auto;
 }
