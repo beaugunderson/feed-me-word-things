@@ -1,6 +1,28 @@
+html, body {
+   height: 100%;
+}
+
 body {
    font-family: monospace;
    padding: 2em;
+   /*text-shadow: 0px 0px 3px;*/
+   opacity: 0.8;
+   background: #efefef;
+   background-image: url('/images/transparent-white-1x4.png');
+}
+
+#background {
+   opacity: 0.5;
+   top: 0;
+   left: 0;
+   position: fixed;
+   z-index: -1000;
+   width: 100%;
+   height: 100%;
+}
+
+#game {
+   display: none;
 }
 
 #countdown-wrapper {
@@ -17,12 +39,21 @@ body {
    color: red;
 }
 
+#instructions, #initializing {
+   font-size: 4em;
+}
+
+#initializing {
+   padding: 4em;
+   display: none;
+}
+
 #words {
    font-size: 4em;
 }
 
 .letter {
-   color: #999;
+   color: #333;
    padding: 5px;
 }
 
@@ -38,4 +69,35 @@ body {
 
 .letter.incorrect {
    /* TODO? */
+}
+
+#correct-words-list {
+   list-style-type: none;
+}
+
+#correct-words-list li {
+   display: inline;
+}
+
+#correct-words-list li:hover {
+   text-decoration: underline;
+}
+
+#after {
+   display: none;
+
+   box-sizing: border-box;
+
+   font-size: 2em;
+   opacity: 0.9;
+   height: 100%;
+   width: 50%;
+   left: 50%;
+   top: 0;
+   position: fixed;
+   background-color: white;
+   border-left: 1px solid #666;
+
+   padding-left: 2em;
+   padding-right: 2em;
 }

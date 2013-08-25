@@ -1,14 +1,86 @@
-/*globals $:true, _:true, Howl:true*/
+/*globals $:true, _:true, Howl:true, async:true*/
 
+var ONE_SECOND = 1000;
 var TEN_SECONDS = 10 * 1000;
 
 var MINIMUM_WORDS = 3;
 var LEVELS_ON_NUMBER = 4;
 
-function Game() {
-  this.correctWords = [];
+// Global for debugging purposes
+var game;
 
+_.mixin({
+  randomArray: function (array) {
+    return array[_.random(array.length - 1)];
+  }
+});
+
+function Game() {
   this.wordTemplate = _.template($('#word-template').html());
+
+  this.narrative = {
+    disasters: [
+      'impact',
+      'sentience breach',
+      'reality dysfunction',
+      'hull depletion',
+      'oxygen depravation'
+    ],
+    verbs: [
+      'rotate',
+      'remove',
+      'disengage',
+      'unfrob',
+      'tighten',
+      'arm',
+      'disarm',
+      're-rotate',
+      're-tighten',
+      'un-loosen',
+      'clean',
+      'polish',
+      'pray to',
+      'gesticulate at'
+    ],
+    nouns: [
+      'hover-turtle',
+      'port doors',
+      'stator coil',
+      'hyperclutch'
+    ],
+    premade: [
+      'sudo !!',
+      'whoami',
+      'reboot',
+      'login',
+      'thrust max',
+      'thrust low'
+    ],
+    commands: [
+      'word2vec',
+      'troff',
+      'nroff',
+      'ps',
+      'grep'
+    ],
+    pipes: [
+      '|',
+      '<',
+      '>'
+    ],
+    files: [
+      'autoexec.bat',
+      'config.sys',
+      '.bashrc',
+      'manifest.xml',
+      'manifest.json',
+      'captain.log'
+    ]
+  };
+}
+
+Game.prototype.zero = function () {
+  this.correctWords = [];
 
   this.level = 1;
 
@@ -17,7 +89,12 @@ function Game() {
 
   this.characters = [];
   this.characterIndex = 0;
-}
+
+  this.statistics = {
+    correct: 0,
+    incorrect: 0
+  };
+};
 
 Game.prototype.getNextLevel = function (level) {
   var words = MINIMUM_WORDS + Math.floor(level / LEVELS_ON_NUMBER);
@@ -27,9 +104,9 @@ Game.prototype.getNextLevel = function (level) {
 };
 
 Game.prototype.startTimer = function (cbInterval, cbDone) {
-  var start = new Date().getTime();
+  this.statistics.startTime = new Date().getTime();
 
-  this.timeEnd = start + TEN_SECONDS;
+  this.timeEnd = this.statistics.startTime + TEN_SECONDS;
 
   var self = this;
 
@@ -41,11 +118,19 @@ Game.prototype.startTimer = function (cbInterval, cbDone) {
     if (now > self.timeEnd) {
       clearInterval(self.timer);
 
-      return cbDone();
+      return cbDone(now);
     }
   }
 
   this.timer = setInterval(timerInterval, 16);
+};
+
+Game.prototype.setTime = function (time) {
+  this.timeEnd = new Date().getTime() + time;
+};
+
+Game.prototype.subtractTime = function (time) {
+  this.timeEnd -= time;
 };
 
 Game.prototype.changeLevel = function (cb) {
@@ -54,7 +139,10 @@ Game.prototype.changeLevel = function (cb) {
   this.getWords(this.getNextLevel(this.level), function (words) {
     self.setWords(words);
 
-    self.timeEnd = new Date().getTime() + TEN_SECONDS;
+    $('#disaster').text(_.randomArray(self.narrative.disasters));
+
+    self.setTime(TEN_SECONDS);
+
     self.level++;
 
     if (cb) {
@@ -72,12 +160,16 @@ Game.prototype.handleCharacter = function (character) {
       $('#countdown-wrapper').removeClass('penalty');
     }, 100);
 
-    this.timeEnd -= 1000;
+    this.subtractTime(ONE_SECOND);
+
+    this.statistics.incorrect++;
 
     this.sounds.play('blast');
 
     return;
   }
+
+  this.statistics.correct++;
 
   this.sounds.play('laser');
 
@@ -115,8 +207,8 @@ Game.prototype.handleKeys = function () {
   });
 
   $(document).on('keypress', function (e) {
-    // XXX: Just an assumption
-    if (e.keyCode >= 127) {
+    // Discard non-alphanumeric/symbols
+    if (e.keyCode < 33 || e.keyCode > 126) {
       return;
     }
 
@@ -127,6 +219,25 @@ Game.prototype.handleKeys = function () {
 Game.prototype.unhandleKeys = function () {
   $(document).off('keydown');
   $(document).off('keypress');
+};
+
+Game.prototype.generateCommand = function () {
+  var chance = _.random(100);
+
+  if (chance < 60) {
+    return _.string.sprintf('%s the %s',
+      _.randomArray(this.narrative.verbs),
+      _.randomArray(this.narrative.nouns));
+  }
+
+  if (chance < 90) {
+    return _.randomArray(this.narrative.premade);
+  }
+
+  return _.string.sprintf('%s %s %s',
+    _.randomArray(this.narrative.commands),
+    _.randomArray(this.narrative.pipes),
+    _.randomArray(this.narrative.files));
 };
 
 Game.prototype.getWords = function (level, cb) {
@@ -147,15 +258,13 @@ Game.prototype.setWords = function (words) {
   this.characters = words[0].split('');
   this.characterIndex = 0;
 
-  $('#words').html('');
-
-  $('#words').html(this.wordTemplate({ words: words }));
+  $('#words').html('').html(this.wordTemplate({ words: words }));
 
   this.highlightNext();
 };
 
 // TODO: key press, 'unh', 'ya' sounds
-Game.prototype.loadSounds = function () {
+Game.prototype.loadSounds = function (cb) {
   this.sounds = new Howl({
     urls: ['/sounds/sounds.mp3'],
     sprite: {
@@ -163,14 +272,16 @@ Game.prototype.loadSounds = function () {
       laser: [3000, 700],
       winner: [5000, 9000]
     },
-    volume: 0.5
+    volume: 0.5,
+    onload: cb
   });
 };
 
 Game.prototype.start = function () {
   var self = this;
 
-  this.loadSounds();
+  this.zero();
+
   this.handleKeys();
 
   this.changeLevel(function () {
@@ -179,27 +290,95 @@ Game.prototype.start = function () {
 
       $('#countdown').text(_.string.sprintf('%.02f', secondsLeft));
     },
-    function () {
+    function (now) {
+      self.statistics.survivalTime = (now - self.statistics.startTime) / 1000;
       self.stop();
     });
   });
 };
 
+Game.prototype.showScore = function () {
+  $('#after').on('click', 'li', function () {
+    $('#after').hide();
+
+    game.start();
+  });
+
+  $('#level').text(this.level);
+
+  $('#seconds').text(this.statistics.survivalTime);
+
+  $('#correct').text(this.statistics.correct);
+  $('#incorrect').text(this.statistics.incorrect);
+
+  $('#correct-words').text(this.correctWords.length);
+
+  $('#accuracy').text(_.string.sprintf('%.02f',
+    100 - ((this.statistics.incorrect / this.statistics.correct) * 100)));
+
+  $('#correct-words-list').html('');
+
+  this.correctWords.forEach(function (word) {
+    $('#correct-words-list').append(_.string.sprintf('<li>%s</li>', word));
+  });
+
+  $('#after').show();
+};
+
 Game.prototype.stop = function () {
   this.unhandleKeys();
 
-  console.log('Game over', this.level, this.wordIndex, this.characterIndex);
-  console.log('Correct words', this.correctWords);
+  $('body').glitch(function (canvas) {
+    $('#background').html(canvas);
+  });
 
-  alert('Game over.');
+  this.showScore();
+};
+
+Game.prototype.initialize = function (cb) {
+  $('#initializing').show();
+
+  $('#background').glitch(function (canvas) {
+    $('#background').html(canvas);
+
+    cb();
+  });
+};
+
+Game.prototype.load = function (cb) {
+  var self = this;
+
+  async.parallel([
+    function (cbParallel) {
+      self.loadSounds(cbParallel);
+    },
+    function (cbParallel) {
+      self.initialize(cbParallel);
+    }
+  ], function () {
+    self.sounds.play('laser');
+
+    cb();
+  });
 };
 
 $(function () {
-  var game = new Game();
+  game = new Game();
 
-  game.start();
+  // Show instructions and wait for enter to be pressed
+  $(document).on('keydown', function (e) {
+    if (e.keyCode === 13) {
+      $(document).off('keydown');
 
-  _.times(50, game.getNextLevel).forEach(function (level) {
-    console.log(level);
+      $('#instructions').hide();
+
+      game.load(function () {
+        $('#game').show();
+
+        game.start();
+      });
+
+      return false;
+    }
   });
 });
