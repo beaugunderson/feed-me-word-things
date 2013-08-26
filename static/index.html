@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
  <head>
-  <title>Ludum 27</title>
+  <title>Feed Me Word Things</title>
 
   <script src="bower_components/jquery/jquery.min.js"></script>
   <script src="bower_components/lodash/dist/lodash.min.js"></script>
@@ -23,13 +23,23 @@
     initialize warp<br>
     warp coil malfunction<br>
     sentient creep malform%%#<br>
-    breach imminent
+    breach imminent<br>
+    batton airhatch<br>
+    reverse rotocoil<br>
+    jettison humans<br>
+    set us up the bomb<br>
+    dowlink eng{#`%${%&amp;`+'${`%&amp;NO CARRIER
    </div>
   </div>
 
   <div id="instructions">
-   <p><strong>feed me word things</strong> is a game of typing in space. see how
-   long you can survive.</p>
+   <p><strong>Feed Me Word Things</strong> is a game of typing in space. See how
+   long you can survive!</p>
+
+   <p>The title is an allusion to a <a
+    href="http://www.amazon.com/Feed-Me-Weird-Things-Squarepusher/dp/B000007423/">Squarepusher
+    album</a>. Some of the narrative is inspired by <a
+    href="http://www.sleepingbeastgames.com/spaceteam/">Spaceteam</a>.
 
    <p>PRESS ENTER &#9632;</p>
   </div>
@@ -43,6 +53,10 @@
    <p>You typed <span id="correct">0</span> characters correctly and <span
     id="incorrect">0</span> characters incorrectly for an accuracy of <span
     id="accuracy">100</span>%.</p>
+
+   <p>Your <a href="http://en.wikipedia.org/wiki/Mavis_Beacon">Mavis Beacon</a>
+   stats are <span id="wpm">0</span> words per minute and <span
+    id="cpm">0</span> characters per minute.</p>
 
    <p>Please choose your favorite word to play again:</p>
 
@@ -58,10 +72,12 @@
 
   <script id="word-template" type="lodash/template">
    <% _.forEach(words, function (word) { %>
-    <div class="word">
-    <% _.forEach(word.split(''), function (letter) { %>
-     <span class="letter"><%= letter %></span>
-    <% }); %>
+    <div>
+     <span class="word">
+     <% _.forEach(word.split(''), function (letter) { %>
+      <span class="letter"><%= letter.replace(' ', '&nbsp;') %></span>
+     <% }); %>
+     </span>
     </div>
    <% }); %>
   </script>

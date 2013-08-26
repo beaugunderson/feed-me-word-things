@@ -2,10 +2,18 @@ html, body {
    height: 100%;
 }
 
+a {
+   text-decoration: none;
+   color: #999;
+}
+
+a:hover {
+   text-decoration: underline;
+}
+
 body {
    font-family: monospace;
    padding: 2em;
-   /*text-shadow: 0px 0px 3px;*/
    opacity: 0.8;
    background: #efefef;
    background-image: url('/images/transparent-white-1x4.png');
@@ -44,12 +52,19 @@ body {
 }
 
 #initializing {
-   padding: 4em;
    display: none;
+
+   padding: 2em;
+   color: green;
 }
 
 #words {
    font-size: 4em;
+}
+
+.word {
+   background-color: rgba(255,255,255,0.3);
+   display: inline-block;
 }
 
 .letter {

@@ -1,4 +1,4 @@
-/*globals $:true, _:true, Howl:true, async:true*/
+/*globals $:true, _:true, Howl:true, async:true, Event:true*/
 
 var ONE_SECOND = 1000;
 var TEN_SECONDS = 10 * 1000;
@@ -98,7 +98,10 @@ function Game() {
 Game.prototype.zero = function () {
   this.correctWords = [];
 
-  this.level = 1;
+  this.level = 0;
+
+  this.feedMeLevel = 1;
+  this.commandLevel = 1;
 
   this.words = [];
   this.wordIndex = 0;
@@ -110,13 +113,6 @@ Game.prototype.zero = function () {
     correct: 0,
     incorrect: 0
   };
-};
-
-Game.prototype.getNextLevel = function (level) {
-  var words = MINIMUM_WORDS + Math.floor(level / LEVELS_ON_NUMBER);
-  var length = words + (level % LEVELS_ON_NUMBER);
-
-  return [words, length];
 };
 
 Game.prototype.startTimer = function (cbInterval, cbDone) {
@@ -149,17 +145,43 @@ Game.prototype.subtractTime = function (time) {
   this.timeEnd -= time;
 };
 
-Game.prototype.changeLevel = function (cb) {
+Game.prototype.getCommandLevel = function (cb) {
+  //var commands = _.times(3, this.generateCommand.bind(this));
+  var commands = [this.generateCommand()];
+
+  this.bngSound();
+
+  this.setWords(commands);
+
+  this.setTime(TEN_SECONDS);
+
+  this.commandLevel++;
+
+  if (cb) {
+    cb();
+  }
+};
+
+Game.prototype.getNextLevel = function (level) {
+  var words = MINIMUM_WORDS + Math.floor(level / LEVELS_ON_NUMBER);
+  var length = words + (level % LEVELS_ON_NUMBER);
+
+  return [words, length];
+};
+
+Game.prototype.getFeedMeLevel = function (cb) {
   var self = this;
 
-  this.getWords(this.getNextLevel(this.level), function (words) {
+  this.getWords(this.getNextLevel(this.feedMeLevel), function (words) {
     self.setWords(words);
+
+    self.bngSound();
 
     $('#disaster').text(_.randomArray(self.narrative.disasters));
 
     self.setTime(TEN_SECONDS);
 
-    self.level++;
+    self.feedMeLevel++;
 
     if (cb) {
       cb();
@@ -167,8 +189,20 @@ Game.prototype.changeLevel = function (cb) {
   });
 };
 
+Game.prototype.changeLevel = function (cb) {
+  this.level++;
+
+  if (this.level === 1 ||
+    this.level % 5 === 0) {
+    this.getCommandLevel(cb);
+  } else {
+    this.getFeedMeLevel(cb);
+  }
+};
+
 Game.prototype.handleCharacter = function (character) {
-  if (character !== this.characters[this.characterIndex]) {
+  if (character !==
+    this.characters[this.characterIndex].replace('&nbsp;', ' ')) {
     $('#countdown-wrapper').addClass('penalty');
 
     // TODO: Better way? Solely in CSS transition?
@@ -180,14 +214,14 @@ Game.prototype.handleCharacter = function (character) {
 
     this.statistics.incorrect++;
 
-    this.sounds.play('blast');
+    this.unhSound();
 
     return;
   }
 
   this.statistics.correct++;
 
-  this.sounds.play('laser');
+  this.keySound();
 
   $('.word').eq(this.wordIndex)
     .find('.letter').eq(this.characterIndex).addClass('correct');
@@ -217,23 +251,29 @@ Game.prototype.handleKeys = function () {
 
   // Handle backspace to prevent browser navigation to the previous page
   $(document).on('keydown', function (e) {
-    if (e.keyCode === 8) {
+    if (e.keyCode === 8 || e.keyCode === 32) {
+      var newEvent = $.Event('keypress');
+
+      newEvent.keyCode = e.keyCode;
+
+      $(document).trigger(newEvent);
+
       return false;
     }
   });
 
   $(document).on('keypress', function (e) {
-    console.log('keypress', e);
-
     // Chrome is keyCode, Firefox is charCode apparently
     var key = e.charCode || e.keyCode;
 
     // Discard non-alphanumeric/symbols
-    if (key < 33 || key > 126) {
+    if (key < 32 || key > 126) {
       return;
     }
 
     self.handleCharacter(String.fromCharCode(key));
+
+    return false;
   });
 };
 
@@ -284,14 +324,88 @@ Game.prototype.setWords = function (words) {
   this.highlightNext();
 };
 
-// TODO: key press, 'unh', 'ya' sounds
+// When keys are typed
+Game.prototype.keySound = function () {
+  this.sounds.play('key' + _.random(1, 7));
+};
+
+// When keys are mistyped
+Game.prototype.unhSound = function () {
+  this.sounds.play('unh' + _.random(1, 9));
+};
+
+// At the start of the game
+Game.prototype.bzhSound = function () {
+  this.sounds.play('bzh' + _.random(1, 4));
+};
+
+// When a word is finished
+Game.prototype.bngSound = function () {
+  this.sounds.play('bng' + _.random(1, 2));
+};
+
+// When Feed Me mode is engaged
+Game.prototype.feedMeSound = function () {
+  this.sounds.play('feedMe' + _.random(1, 6));
+};
+
 Game.prototype.loadSounds = function (cb) {
   this.sounds = new Howl({
-    urls: ['/sounds/sounds.mp3'],
+    urls: ['/sounds/sound-effects.mp3', '/sounds/sound-effects.ogg'],
     sprite: {
-      blast: [0, 2000],
-      laser: [3000, 700],
-      winner: [5000, 9000]
+      bng1: [28256, 467],
+      bng2: [29166, 403],
+
+      bzh1: [7169, 408],
+      bzh2: [25937, 578],
+      bzh3: [27771, 313],
+      bzh4: [46623, 435],
+
+      feedMe1: [34705, 1562],
+      feedMe2: [36786, 1721],
+      feedMe3: [38911, 1866],
+      feedMe4: [41244, 1190],
+      feedMe5: [42841, 1260],
+      feedMe6: [44388, 1289],
+
+      huh: [3702, 459],
+
+      key1: [50, 200],
+      key2: [700, 200],
+      key3: [1550, 200],
+      key4: [2447, 200],
+      key5: [2990, 200],
+      key6: [50684, 208],
+      key7: [51302, 216],
+
+      next: [30520, 434],
+      phlegm: [26955, 412],
+      shwip: [48550, 209],
+      shwippo: [49075, 253],
+
+      static1: [4555, 911],
+      static2: [5859, 729],
+      staticLong: [54793, 2839],
+      staticMedium: [53806, 595],
+      staticShort: [53078, 345],
+
+      ticktock: [45978, 279],
+      uh: [31643, 372],
+
+      unh1: [8414, 401],
+      unh2: [9767, 350],
+      unh3: [14308, 430],
+      unh4: [15855, 495],
+      unh5: [17290, 369],
+      unh6: [18474, 342],
+      unh7: [19853, 550],
+      unh8: [20895, 461],
+      unh9: [22229, 469],
+
+      wahwah: [23290, 2090],
+      whistle: [49798, 348],
+      youLose: [33746, 578],
+      zheu: [47395, 546],
     },
     volume: 0.5,
     onload: cb,
@@ -303,12 +417,14 @@ Game.prototype.loadSounds = function (cb) {
 };
 
 Game.prototype.start = function () {
-  var self = this;
-
   $(document).scrollTop(0);
 
   this.zero();
+
   this.handleKeys();
+  this.handleScoreInteraction();
+
+  var self = this;
 
   this.changeLevel(function () {
     self.startTimer(function (remaining) {
@@ -323,10 +439,27 @@ Game.prototype.start = function () {
   });
 };
 
+Game.prototype.handleScoreInteraction = function () {
+  var self = this;
+
+  $('#after').on('click', 'li', function () {
+    $('#after').hide();
+
+    self.start();
+  });
+};
+
 Game.prototype.showScore = function () {
   $('#level').text(this.level);
 
-  $('#seconds').text(this.statistics.survivalTime);
+  var cps = this.statistics.correct / this.statistics.survivalTime;
+  var cpm = cps * 60;
+  var wpm = cpm / 5;
+
+  $('#cpm').text(_.string.sprintf('%.01f', cpm));
+  $('#wpm').text(_.string.sprintf('%.01f', wpm));
+
+  $('#seconds').text(_.string.sprintf('%.02f', this.statistics.survivalTime));
 
   $('#correct').text(this.statistics.correct);
   $('#incorrect').text(this.statistics.incorrect);
@@ -343,14 +476,8 @@ Game.prototype.showScore = function () {
     $('#correct-words-list').append(_.string.sprintf('<li>%s</li>', word));
   });
 
-  $('#after').on('click', 'li', function () {
-    $('#after').hide();
-
-    game.start();
-  });
-
-  $('#after').scrollTop(0);
   $('#after').show();
+  $('#after').scrollTop(0);
 };
 
 Game.prototype.stop = function () {
@@ -358,6 +485,10 @@ Game.prototype.stop = function () {
 
   glitchIfEnabled('body', function (canvas) {
     $('#background').html(canvas);
+
+    glitchIfEnabled('body', function (canvas) {
+      $('#background').html(canvas);
+    });
   });
 
   this.showScore();
@@ -386,9 +517,7 @@ Game.prototype.load = function (cb) {
       self.initialize(cbParallel);
     }
   ], function () {
-    console.log('Finished loading');
-
-    self.sounds.play('laser');
+    self.bzhSound();
 
     cb();
   });
