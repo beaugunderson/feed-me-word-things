@@ -64,8 +64,11 @@
   </div>
 
   <div id="game">
-   <h1 id="countdown-wrapper"><span id="countdown">10</span> seconds until <span
-     id="disaster">impact</span></h1>
+   <h1 id="countdown-wrapper"><span id="countdown">10</span>
+    <span id="feed-me">FEED ME WORDS</span>
+    <span id="disaster-wrapper">seconds until <span
+      id="disaster">impact</span></span>
+   </h1>
 
    <div id="words"></div>
   </div>
@@ -74,10 +77,8 @@
    <% _.forEach(words, function (word) { %>
     <div>
      <span class="word">
-     <% _.forEach(word.split(''), function (letter) { %>
-      <span class="letter"><%= letter.replace(' ', '&nbsp;') %></span>
-     <% }); %>
-     </span>
+     <% _.forEach(word.split(''), function (letter) {
+      %><span class="letter"><%= letter.replace(' ', '&nbsp;') %></span><% }); %></span>
     </div>
    <% }); %>
   </script>

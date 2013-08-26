@@ -33,6 +33,18 @@ body {
    display: none;
 }
 
+#feed-me {
+   display: none;
+}
+
+#game.feed-me #disaster-wrapper {
+   display: none;
+}
+
+#game.feed-me #feed-me {
+   display: inline;
+}
+
 #countdown-wrapper {
    font-size: 4em;
    margin-top: 0;
@@ -62,6 +74,30 @@ body {
    font-size: 4em;
 }
 
+#game.command #words {
+   font-size: 3em;
+}
+
+.live #game.feed-me #countdown-wrapper {
+   -moz-animation: danger 0.5s ease-out;
+   -moz-animation-iteration-count: infinite;
+
+   -webkit-animation: danger 0.5s ease-out;
+   -webkit-animation-iteration-count: infinite;
+}
+
+@-moz-keyframes danger {
+   0% { color: black; }
+   50% { color: red; }
+   100% { color: black; }
+}
+
+@-webkit-keyframes danger {
+   0% { color: black; }
+   50% { color: red; }
+   100% { color: black; }
+}
+
 .word {
    background-color: rgba(255,255,255,0.3);
    display: inline-block;
@@ -69,21 +105,36 @@ body {
 
 .letter {
    color: #333;
+   margin: 0;
    padding: 5px;
+   display: inline-block;
 }
 
 .letter.next {
-   /* TODO: Add animation */
-   background-color: #666;
+   background-color: #333;
    color: white;
+
+   -moz-animation: pulsate 0.5s ease-out;
+   -moz-animation-iteration-count: infinite;
+
+   -webkit-animation: pulsate 0.5s ease-out;
+   -webkit-animation-iteration-count: infinite;
+}
+
+@-moz-keyframes pulsate {
+   0% { background-color: #333; }
+   50% { background-color: #666; }
+   100% { background-color: #333; }
+}
+
+@-webkit-keyframes pulsate {
+   0% { background-color: #333; }
+   50% { background-color: #666; }
+   100% { background-color: #333; }
 }
 
 .letter.correct {
    color: green;
-}
-
-.letter.incorrect {
-   /* TODO? */
 }
 
 #correct-words-list {
@@ -95,6 +146,7 @@ body {
 #correct-words-list li {
    display: inline-block;
    margin-right: 0.75em;
+   color: green;
 }
 
 #correct-words-list li:hover {
