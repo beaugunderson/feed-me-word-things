@@ -40,7 +40,8 @@ function Game() {
       'sentience breach',
       'reality dysfunction',
       'hull depletion',
-      'oxygen depravation'
+      'oxygen depravation',
+      'moral outrage'
     ],
     verbs: [
       'rotate',
@@ -56,28 +57,47 @@ function Game() {
       'clean',
       'polish',
       'pray to',
-      'gesticulate at'
+      'gesticulate at',
+      'eat',
+      'smell',
+      'disrobe',
+      'deep fry',
+      'cook',
+      'symbolize'
     ],
     nouns: [
       'hover-turtle',
       'port doors',
       'stator coil',
-      'hyperclutch'
+      'hyperclutch',
+      'aft doors',
+      'windshield',
+      'cleaning unit',
+      'cleansoid',
+      'riffleskip',
+      'circuits',
+      'scorching unit'
     ],
     premade: [
       'sudo !!',
       'whoami',
       'reboot',
       'login',
-      'thrust max',
-      'thrust low'
+      'thrust --max',
+      'thrust --low',
+      'shutdown -h now',
+      'fortune'
     ],
     commands: [
       'word2vec',
       'troff',
       'nroff',
       'ps',
-      'grep'
+      'grep',
+      'cat',
+      'kill -9',
+      'kill -HUP',
+      'pip install'
     ],
     pipes: [
       '|',
@@ -92,7 +112,11 @@ function Game() {
       'manifest.xml',
       'manifest.json',
       'captain.log',
-      '/dev/null'
+      '/dev/null',
+      '/dev/random',
+      'config.json',
+      '/var',
+      'STDOUT'
     ]
   };
 }
