@@ -4,14 +4,26 @@
   "description": "My entry to Ludum Dare #27",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -R spec"
+    "test": "mocha -R spec",
+    "bundle": "browserify -t brfs static/js/main.js > static/js/main-bundle.js"
   },
   "author": "Beau Gunderson <beau@beaugunderson.com>",
   "license": "MIT",
   "dependencies": {
-    "nonsense": "~0.2.0",
+    "async": "^2.0.1",
+    "brfs": "^1.4.3",
+    "browserify": "^13.1.0",
     "express": "~4.14.0",
-    "lodash": "~4.14.0",
-    "mongodb": "~2.2.4"
+    "howler": "^2.0.0",
+    "jquery": "^3.1.0",
+    "jsdom": "^9.4.1",
+    "location": "0.0.1",
+    "lodash": "^4.14.0",
+    "mongodb": "~2.2.4",
+    "navigator": "^1.0.1",
+    "nonsense": "~0.2.0",
+    "sprintf-js": "^1.0.3",
+    "string-to-stream": "^1.1.0",
+    "xmlhttprequest": "^1.8.0"
   }
 }

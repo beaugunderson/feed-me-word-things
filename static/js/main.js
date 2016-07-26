@@ -1,4 +1,16 @@
-/*globals $:true, _:true, Howl:true, async:true, Event:true*/
+var async = require('async');
+var fs = require('fs');
+var Howl = require('howler').Howl;
+var nonsense = require('nonsense');
+var sprintf = require('sprintf-js').sprintf;
+var stringToStream = require('string-to-stream');
+var $ = window.jQuery = require('jquery');
+var _ = require('lodash');
+
+var wordList = fs.readFileSync('./words.txt');
+var wordStream = stringToStream(wordList);
+
+var nonsenseWords = nonsense.words(wordStream, 4);
 
 var ONE_SECOND = 1000;
 var TEN_SECONDS = 10 * 1000;
@@ -8,6 +20,28 @@ var LEVELS_ON_NUMBER = 4;
 
 var GLITCH_ENABLED = true;
 
+var preloadedWords = [];
+
+function getNextLevel(level) {
+  var words = MINIMUM_WORDS + Math.floor(level / LEVELS_ON_NUMBER);
+  var length = words + (level % LEVELS_ON_NUMBER);
+
+  return [words, length];
+}
+
+function preloadWords() {
+  for (var i = 0; i < 100; i++) {
+    var level = getNextLevel(i);
+
+    console.log('XXX', level);
+
+    preloadedWords[i] = _.times(level[0],
+                                _.partial(nonsenseWords.random, level[1]));
+  }
+
+  console.log(preloadedWords);
+}
+
 function glitchIfEnabled(element, cb) {
   if (GLITCH_ENABLED) {
     $(element).glitch(function (canvas) {
@@ -15,10 +49,8 @@ function glitchIfEnabled(element, cb) {
         cb(canvas);
       }
     });
-  } else {
-    if (cb) {
-      cb('');
-    }
+  } else if (cb) {
+    cb('');
   }
 }
 
@@ -193,39 +225,30 @@ Game.prototype.getCommandLevel = function (cb) {
   }
 };
 
-Game.prototype.getNextLevel = function (level) {
-  var words = MINIMUM_WORDS + Math.floor(level / LEVELS_ON_NUMBER);
-  var length = words + (level % LEVELS_ON_NUMBER);
-
-  return [words, length];
-};
-
 Game.prototype.getFeedMeLevel = function (cb) {
-  var self = this;
+  var words = this.getWords(this.feedMeLevel);
 
-  this.getWords(this.getNextLevel(this.feedMeLevel), function (words) {
-    $('#game').removeClass();
-    $('#game').addClass('feed-me');
+  $('#game').removeClass();
+  $('#game').addClass('feed-me');
 
-    self.setWords(words);
+  this.setWords(words);
 
-    self.feedMeSound();
+  this.feedMeSound();
 
-    self.setTime(TEN_SECONDS);
+  this.setTime(TEN_SECONDS);
 
-    self.feedMeLevel++;
+  this.feedMeLevel++;
 
-    if (cb) {
-      cb();
-    }
-  });
+  if (cb) {
+    cb();
+  }
 };
 
 Game.prototype.changeLevel = function (cb) {
   this.level++;
 
   if (this.level === 1 ||
-    this.level % 3 === 0) {
+      this.level % 3 === 0) {
     this.getCommandLevel(cb);
   } else {
     this.getFeedMeLevel(cb);
@@ -233,12 +256,8 @@ Game.prototype.changeLevel = function (cb) {
 };
 
 Game.prototype.handleCharacter = function (character) {
-  if (_.random(100) > 90) {
-    this.backgroundSound();
-  }
-
   if (character !==
-    this.characters[this.characterIndex].replace('&nbsp;', ' ')) {
+      this.characters[this.characterIndex].replace('&nbsp;', ' ')) {
     $('#countdown-wrapper').addClass('penalty');
 
     // TODO: Better way? Solely in CSS transition?
@@ -253,6 +272,10 @@ Game.prototype.handleCharacter = function (character) {
     this.unhSound();
 
     return;
+  }
+
+  if (_.random(100) > 90) {
+    this.backgroundSound();
   }
 
   this.statistics.correct++;
@@ -326,7 +349,7 @@ Game.prototype.generateCommand = function () {
   var chance = _.random(100);
 
   if (chance < 60) {
-    return _.string.sprintf('%s the %s',
+    return sprintf('%s the %s',
       _.randomArray(this.narrative.verbs),
       _.randomArray(this.narrative.nouns));
   }
@@ -335,14 +358,14 @@ Game.prototype.generateCommand = function () {
     return _.randomArray(this.narrative.premade);
   }
 
-  return _.string.sprintf('%s %s %s',
+  return sprintf('%s %s %s',
     _.randomArray(this.narrative.commands),
     _.randomArray(this.narrative.pipes),
     _.randomArray(this.narrative.files));
 };
 
-Game.prototype.getWords = function (level, cb) {
-  $.getJSON(_.string.sprintf('/words/%d/%d', level[0], level[1]), cb);
+Game.prototype.getWords = function (level) {
+  return preloadedWords[level];
 };
 
 Game.prototype.highlightNext = function () {
@@ -359,7 +382,7 @@ Game.prototype.setWords = function (words) {
   this.characters = words[0].split('');
   this.characterIndex = 0;
 
-  $('#words').html('').html(this.wordTemplate({ words: words }));
+  $('#words').html('').html(this.wordTemplate({words: words}));
 
   this.highlightNext();
 };
@@ -409,7 +432,7 @@ Game.prototype.backgroundSound = function () {
 
 Game.prototype.loadSounds = function (cb) {
   this.sounds = new Howl({
-    urls: ['/sounds/sound-effects.mp3', '/sounds/sound-effects.ogg'],
+    src: ['/sounds/sound-effects.mp3', '/sounds/sound-effects.ogg'],
     sprite: {
       bng1: [28256, 467],
       bng2: [29166, 403],
@@ -469,6 +492,7 @@ Game.prototype.loadSounds = function (cb) {
     onload: cb,
     onloaderror: function (err) {
       console.log('Ignoring sound loading error', err);
+
       cb();
     }
   });
@@ -489,7 +513,7 @@ Game.prototype.start = function () {
     self.startTimer(function (remaining) {
       var secondsLeft = Math.max(0, remaining / 1000);
 
-      $('#countdown').text(_.string.sprintf('%.02f', secondsLeft));
+      $('#countdown').text(sprintf('%.02f', secondsLeft));
     },
     function (now) {
       self.statistics.survivalTime = (now - self.statistics.startTime) / 1000;
@@ -517,24 +541,24 @@ Game.prototype.showScore = function () {
   var cpm = cps * 60;
   var wpm = cpm / 5;
 
-  $('#cpm').text(_.string.sprintf('%.01f', cpm));
-  $('#wpm').text(_.string.sprintf('%.01f', wpm));
+  $('#cpm').text(sprintf('%.01f', cpm));
+  $('#wpm').text(sprintf('%.01f', wpm));
 
-  $('#seconds').text(_.string.sprintf('%.02f', this.statistics.survivalTime));
+  $('#seconds').text(sprintf('%.02f', this.statistics.survivalTime));
 
   $('#correct').text(this.statistics.correct);
   $('#incorrect').text(this.statistics.incorrect);
 
   $('#correct-words').text(this.correctWords.length);
 
-  $('#accuracy').text(_.string.sprintf('%.02f',
+  $('#accuracy').text(sprintf('%.02f',
     (this.statistics.correct /
       (this.statistics.correct + this.statistics.incorrect)) * 100));
 
   $('#correct-words-list').html('');
 
   this.nonsenseWords.sort().forEach(function (word) {
-    $('#correct-words-list').append(_.string.sprintf('<li>%s</li>', word));
+    $('#correct-words-list').append(sprintf('<li>%s</li>', word));
   });
 
   $('#after').show();
@@ -587,11 +611,25 @@ Game.prototype.load = function (cb) {
 };
 
 $(function () {
+  var initializing = true;
+
   game = new Game();
+
+  wordStream.on('end', function () {
+    preloadWords();
+
+    initializing = false;
+
+    $('#press-enter').html('PRESS ENTER &#9632');
+  });
 
   // Show instructions and wait for enter to be pressed
   $(document).on('keydown', function (e) {
     if (e.keyCode === 13) {
+      if (initializing) {
+        return;
+      }
+
       $(document).off('keydown');
 
       $('#instructions').hide();

@@ -45,6 +45,23 @@ body {
    display: inline;
 }
 
+@keyframes press-enter {
+   0% { color: black; }
+   50% { color: #aaa; }
+   100% { color: black; }
+}
+
+#press-enter {
+   animation: press-enter 1.25s ease-out;
+   animation-iteration-count: infinite;
+
+   -moz-animation: press-enter 1.25s ease-out;
+   -moz-animation-iteration-count: infinite;
+
+   -webkit-animation: press-enter 1.25s ease-out;
+   -webkit-animation-iteration-count: infinite;
+}
+
 #countdown-wrapper {
    font-size: 4em;
    margin-top: 0;
