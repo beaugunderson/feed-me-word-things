@@ -1,10 +1,8 @@
 var express = require('express');
 var fs = require('fs');
-var mongo = require('mongodb');
+var MongoClient = require('mongodb').MongoClient;
 var nonsense = require('nonsense');
 var _ = require('lodash');
-
-var mongoUri = process.env.MONGOLAB_URI;
 
 var favorites;
 
@@ -26,21 +24,20 @@ app.get('/favorite/:word', function (req, res) {
 
   update[req.param('word')] = 1;
 
-  favorites.update({ id: 'words' }, { $inc: update }, { safe: true },
-    function () {
+  favorites.update({id: 'words'}, {$inc: update}, {safe: true}, () => {
     res.send(200);
   });
 });
 
 // Wait until the nonsense dictionary is loaded
-mongo.Db.connect(mongoUri, function (err, db) {
+MongoClient.connect(process.env.MONGOLAB_URI, function (err, db) {
   db.collection('favorites', function (err, collection) {
     favorites = collection;
 
     words.on('end', function () {
-      console.log('listening on lvh.me:5000');
+      console.log('finished creating nonsense words');
 
-      app.listen(process.env.PORT);
+      app.listen(process.env.PORT || 5000);
     });
   });
 });
